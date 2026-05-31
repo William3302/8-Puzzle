@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8 Puzzle - Jogo de Deslizar</title>
+    <style>
+        /* Estilização da página e do layout */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin-top: 50px;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        /* Estilização do tabuleiro */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            background-color: #222;
+            padding: 5px;
+            border: 4px solid #333;
+            border-radius: 5px;
+        }
+
+        /* Estilização das peças */
+        .tile {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            font-size: 36px;
+            font-weight: bold;
+            color: #d32f2f; /* Cor vermelha para os números, como na imagem */
+            cursor: pointer;
+            border: 2px solid #ccc;
+            user-select: none;
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .tile:hover {
+            background-color: #ffebee;
+        }
+
+        /* O espaço vazio */
+        .empty {
+            background-color: transparent;
+            cursor: default;
+            border: none;
+            box-shadow: none;
+        }
+        
+        .empty:hover {
+            background-color: transparent;
+        }
+
+        /* Controles e Mensagens */
+        #controls {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: white;
+            background-color: #1976d2;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background-color: #115293;
+        }
+
+        #message {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #388e3c;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Jogo dos 8 Números</h1>
+    
+    <div id="game-board"></div>
+    
+    <div id="controls">
+        <button id="shuffle-btn">Embaralhar</button>
+        <button id="solve-btn">Mostrar Solução</button>
+    </div>
+
+    <p id="message"></p>
+
+    <script>
+        const boardElement = document.getElementById('game-board');
+        const messageElement = document.getElementById('message');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const solveBtn = document.getElementById('solve-btn');
+
+        // 0 representa o espaço vazio
+        let board = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+        const goalState = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+
+        // Função para desenhar o tabuleiro na tela
+        function renderBoard() {
+            boardElement.innerHTML = '';
+            board.forEach((val, index) => {
+                const tile = document.createElement('div');
+                tile.classList.add('tile');
+                
+                if (val === 0) {
+                    tile.classList.add('empty');
+                } else {
+                    tile.textContent = val;
+                }
+
+                // Adiciona evento de clique para mover a peça
+                tile.addEventListener('click', () => moveTile(index));
+                boardElement.appendChild(tile);
+            });
+            checkWin();
+        }
+
+        // Função para mover a peça clicada (se for vizinha do espaço vazio)
+        function moveTile(index) {
+            const emptyIndex = board.indexOf(0);
+            const validMoves = getValidMoves(emptyIndex);
+
+            if (validMoves.includes(index)) {
+                // Troca a peça clicada com o espaço vazio
+                [board[index], board[emptyIndex]] = [board[emptyIndex], board[index]];
+                renderBoard();
+            }
+        }
+
+        // Descobre quais peças podem se mover para o espaço vazio
+        function getValidMoves(emptyIndex) {
+            const row = Math.floor(emptyIndex / 3);
+            const col = emptyIndex % 3;
+            const moves = [];
+
+            if (row > 0) moves.push(emptyIndex - 3); // Cima
+            if (row < 2) moves.push(emptyIndex + 3); // Baixo
+            if (col > 0) moves.push(emptyIndex - 1); // Esquerda
+            if (col < 2) moves.push(emptyIndex + 1); // Direita
+
+            return moves;
+        }
+
+        // Verifica se o jogador atingiu o estado final (1 ao 8 em ordem)
+        function checkWin() {
+            if (JSON.stringify(board) === JSON.stringify(goalState)) {
+                messageElement.textContent = "Parabéns! Você resolveu!";
+            } else {
+                messageElement.textContent = "";
+            }
+        }
+
+        // Embaralha o tabuleiro fazendo movimentos aleatórios válidos
+        // Isso garante que o quebra-cabeça sempre tenha uma solução possível
+        function shuffle() {
+            let emptyIndex = board.indexOf(0);
+            for (let i = 0; i < 150; i++) {
+                const validMoves = getValidMoves(emptyIndex);
+                const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+                
+                [board[randomMove], board[emptyIndex]] = [board[emptyIndex], board[randomMove]];
+                emptyIndex = randomMove;
+            }
+            renderBoard();
+        }
+
+        // Retorna o tabuleiro ao estado resolvido
+        function solve() {
+            board = [...goalState];
+            renderBoard();
+        }
+
+        // Eventos dos botões
+        shuffleBtn.addEventListener('click', shuffle);
+        solveBtn.addEventListener('click', solve);
+
+        // Inicialização do jogo
+        renderBoard();
+    </script>
+</body>
+</html>
